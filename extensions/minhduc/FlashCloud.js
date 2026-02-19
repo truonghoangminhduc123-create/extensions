@@ -1,83 +1,87 @@
 (function (Scratch) {
-  'use strict';
+  "use strict";
 
   // Helper to translate strings
   const formatMessage = (id, defaultText) => {
     return Scratch.translate({
       id: id,
-      default: defaultText
+      default: defaultText,
     });
   };
 
   class MinhDucCloudElite {
     constructor() {
       this.ws = null;
-      this.status = 'Disconnected';
-      this.projectName = 'None';
+      this.status = "Disconnected";
+      this.projectName = "None";
       this.resolveMap = new Map();
     }
 
     getInfo() {
       return {
-        id: 'minhduccloudelite',
-        name: formatMessage('name', 'Min Duc Cloud Elite'),
-        color1: '#0052ff',
-        color2: '#003eb3',
+        id: "minhduccloudelite",
+        name: formatMessage("name", "Min Duc Cloud Elite"),
+        color1: "#0052ff",
+        color2: "#003eb3",
         blocks: [
           {
-            opcode: 'connect',
+            opcode: "connect",
             blockType: Scratch.BlockType.COMMAND,
-            text: formatMessage('connect', 'Connect to Project [ID]'),
-            arguments: { ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'lobby' } }
-          },
-          {
-            opcode: 'disconnect',
-            blockType: Scratch.BlockType.COMMAND,
-            text: formatMessage('disconnect', 'Disconnect')
-          },
-          '---',
-          {
-            opcode: 'getVar',
-            blockType: Scratch.BlockType.REPORTER,
-            text: formatMessage('getVar', 'Get [KEY]'),
-            arguments: { KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'score' } }
-          },
-          {
-            opcode: 'setVar',
-            blockType: Scratch.BlockType.REPORTER,
-            text: formatMessage('setVar', 'Set [KEY] to [VAL]'),
+            text: formatMessage("connect", "Connect to Project [ID]"),
             arguments: {
-              KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'hp' },
-              VAL: { type: Scratch.ArgumentType.STRING, defaultValue: '100' }
-            }
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "lobby" },
+            },
           },
           {
-            opcode: 'listVars',
+            opcode: "disconnect",
+            blockType: Scratch.BlockType.COMMAND,
+            text: formatMessage("disconnect", "Disconnect"),
+          },
+          "---",
+          {
+            opcode: "getVar",
             blockType: Scratch.BlockType.REPORTER,
-            text: formatMessage('listVars', 'List All Variables')
+            text: formatMessage("getVar", "Get [KEY]"),
+            arguments: {
+              KEY: { type: Scratch.ArgumentType.STRING, defaultValue: "score" },
+            },
           },
           {
-            opcode: 'clearProject',
+            opcode: "setVar",
             blockType: Scratch.BlockType.REPORTER,
-            text: formatMessage('clearProject', 'Clear All Data (Wipe)')
-          },
-          '---',
-          {
-            opcode: 'readStatus',
-            blockType: Scratch.BlockType.REPORTER,
-            text: formatMessage('status', 'Connection Status')
+            text: formatMessage("setVar", "Set [KEY] to [VAL]"),
+            arguments: {
+              KEY: { type: Scratch.ArgumentType.STRING, defaultValue: "hp" },
+              VAL: { type: Scratch.ArgumentType.STRING, defaultValue: "100" },
+            },
           },
           {
-            opcode: 'readProject',
+            opcode: "listVars",
             blockType: Scratch.BlockType.REPORTER,
-            text: formatMessage('project', 'Current Project')
+            text: formatMessage("listVars", "List All Variables"),
           },
           {
-            opcode: 'getGuide',
+            opcode: "clearProject",
             blockType: Scratch.BlockType.REPORTER,
-            text: formatMessage('guide', 'How to use? (Tutorial)')
-          }
-        ]
+            text: formatMessage("clearProject", "Clear All Data (Wipe)"),
+          },
+          "---",
+          {
+            opcode: "readStatus",
+            blockType: Scratch.BlockType.REPORTER,
+            text: formatMessage("status", "Connection Status"),
+          },
+          {
+            opcode: "readProject",
+            blockType: Scratch.BlockType.REPORTER,
+            text: formatMessage("project", "Current Project"),
+          },
+          {
+            opcode: "getGuide",
+            blockType: Scratch.BlockType.REPORTER,
+            text: formatMessage("guide", "How to use? (Tutorial)"),
+          },
+        ],
       };
     }
 
@@ -88,16 +92,16 @@
 
       // SECURITY CHECK REQUIRED BY TURBOWARP
       if (!(await Scratch.canFetch(url))) {
-        this.status = 'Permission Denied';
+        this.status = "Permission Denied";
         return;
       }
 
       // eslint-disable-next-line extension/check-can-fetch
       this.ws = new WebSocket(url);
-      this.status = 'Connecting...';
+      this.status = "Connecting...";
 
       this.ws.onopen = () => {
-        this.status = 'Connected';
+        this.status = "Connected";
         this.projectName = id;
       };
 
@@ -112,13 +116,13 @@
       };
 
       this.ws.onclose = () => {
-        this.status = 'Disconnected';
-        this.projectName = 'None';
+        this.status = "Disconnected";
+        this.projectName = "None";
         this.ws = null;
       };
 
       this.ws.onerror = () => {
-        this.status = 'Connection Error';
+        this.status = "Connection Error";
       };
     }
 
@@ -128,22 +132,22 @@
         this.ws.close();
         this.ws = null;
       }
-      this.status = 'Disconnected';
-      this.projectName = 'None';
+      this.status = "Disconnected";
+      this.projectName = "None";
       for (const [resolve, timeout] of this.resolveMap) {
         clearTimeout(timeout);
-        resolve('DISCONNECTED');
+        resolve("DISCONNECTED");
       }
       this.resolveMap.clear();
     }
 
     async _request(msg) {
-      if (!this.ws || this.ws.readyState !== 1) return 'OFFLINE';
+      if (!this.ws || this.ws.readyState !== 1) return "OFFLINE";
 
       const response = await new Promise((resolve) => {
         const timeout = setTimeout(() => {
           this.resolveMap.delete(resolve);
-          resolve('TIMEOUT');
+          resolve("TIMEOUT");
         }, 3000);
 
         this.resolveMap.set(resolve, timeout);
@@ -173,10 +177,9 @@
     }
 
     getGuide() {
-      return '1. Connect with ID. 2. Wait for Connected status. 3. Use round blocks to get/set data.';
+      return "1. Connect with ID. 2. Wait for Connected status. 3. Use round blocks to get/set data.";
     }
   }
 
   Scratch.extensions.register(new MinhDucCloudElite());
 })(Scratch);
-
