@@ -1,18 +1,27 @@
 (function(Scratch) {
   'use strict';
 
+  // Thiết lập hệ thống dịch thuật cho extension (tránh lỗi extension/should-translate)
+  const formatMessage = (id, defaultMessage) => Scratch.translate({
+    id,
+    default: defaultMessage,
+    description: `Translate+ extension: ${id}`
+  });
+
   class TranslatePlus {
     getInfo() {
       return {
         id: 'translatePlus',
-        name: 'Translate+',
+        // Bọc tên extension vào formatMessage
+        name: formatMessage('name', 'Translate+'),
         color1: '#4C97FF',
         color2: '#3373CC',
         blocks: [
           {
             opcode: 'getTranslation',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'translate [TEXT] using [SERVICE] to [LANG]',
+            // Bọc văn bản trên block vào formatMessage
+            text: formatMessage('blockText', 'translate [TEXT] using [SERVICE] to [LANG]'),
             arguments: {
               TEXT: {
                 type: Scratch.ArgumentType.STRING,
@@ -61,7 +70,6 @@
       const serviceInput = args.SERVICE;
       const langInput = args.LANG;
       
-      // Cập nhật endpoint chính xác theo tài liệu curl mới: có thêm /gradio_api
       const baseUrl = 'https://tuhbooh-translator.hf.space/gradio_api/call/translate';
       
       const langMap = {
@@ -85,8 +93,8 @@
       const backendLangName = langMap[langInput] || langInput;
 
       try {
-        // BƯỚC 1: Gọi POST để lấy EVENT_ID (Khớp lệnh curl bước 1)
-        const callResponse = await fetch(baseUrl, {
+        // Sử dụng Scratch.fetch() thay vì fetch() (tránh lỗi extension/use-scratch-fetch)
+        const callResponse = await Scratch.fetch(baseUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -98,15 +106,13 @@
         
         const { event_id } = await callResponse.json();
 
-        // BƯỚC 2: Gọi GET để nhận kết quả (Khớp lệnh curl bước 2)
-        const resultResponse = await fetch(`${baseUrl}/${event_id}`);
+        // Sử dụng Scratch.fetch()
+        const resultResponse = await Scratch.fetch(`${baseUrl}/${event_id}`);
         
         if (!resultResponse.ok) return "Result Error";
 
         const rawResult = await resultResponse.text();
         
-        // Phân tích dữ liệu từ stream trả về của Gradio
-        // Nó sẽ trả về chuỗi có chứa "event: complete" và "data: [...]"
         const dataLines = rawResult.split('\n');
         for (const line of dataLines) {
           if (line.startsWith('data:')) {
@@ -117,7 +123,7 @@
                 return dataArray[0];
               }
             } catch (e) {
-              continue; // Bỏ qua nếu dòng này không phải JSON hợp lệ
+              continue;
             }
           }
         }
